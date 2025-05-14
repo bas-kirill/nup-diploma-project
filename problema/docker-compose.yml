@@ -1,0 +1,32 @@
+services:
+  minio:
+    image: minio/minio
+    container_name: minio
+    entrypoint: sh
+    command: >
+      -c 'mkdir -p /data/test-bucket && minio server /data'
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: "USERNAME"
+      MINIO_ROOT_PASSWORD: "PASSWORD"
+      MINIO_ADDRESS: ":9000"
+      MINIO_CONSOLE_ADDRESS: ":9001"
+    volumes:
+      - minio-data:/data
+
+  s3sync:
+    build:
+      context: .
+    container_name: s3sync
+    environment:
+      AWS_ACCESS_KEY_ID: "USERNAME"
+      AWS_SECRET_ACCESS_KEY: "PASSWORD"
+      BUCKET_NAME: "test-bucket"
+      ENDPOINT_URL: "http://minio:9000"
+    depends_on:
+      - minio
+
+volumes:
+  minio-data:
